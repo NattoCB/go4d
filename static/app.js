@@ -36,6 +36,7 @@
   globalThis.Go4DViewModel = Object.freeze({pointIndex, indexPoint, neighbors, groupInfo});
   if (typeof document === "undefined") return;
 
+  const backendFetch = (path, options) => window.GoWebBackend ? window.GoWebBackend.request(path, options) : fetch(path, options);
   const $ = id => document.getElementById(id);
   const svgElement = (tag, attributes = {}) => {
     const node = document.createElementNS("http://www.w3.org/2000/svg", tag);
@@ -69,7 +70,7 @@
   }
   function renderStatus() {
     const banner = $("status-banner"); banner.classList.toggle("error", noticeError);
-    if (busy) { banner.textContent = "正在计算棋局，请稍候…"; return; }
+    if (busy) { banner.textContent = !state && window.GoWebBackend ? "正在加载浏览器游戏引擎，首次加载需要联网，请稍候…" : "正在计算棋局，请稍候…"; return; }
     if (notice) { banner.textContent = notice; return; }
     if (!state) { banner.textContent = "正在连接棋盘…"; return; }
     const g = state.game;
@@ -95,7 +96,7 @@
     if (busy || !state) return;
     setBusy(true); notice = ""; noticeError = false; renderStatus();
     try {
-      const response = await fetch("/api/action", {method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({action:actionName, revision:state.revision, ...parameters})});
+      const response = await backendFetch("/api/action", {method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({action:actionName, revision:state.revision, ...parameters})});
       const result = await readResponse(response);
       hintedPoint = actionName === "hint" ? result.hint : null;
       applyState(result);
@@ -276,7 +277,7 @@
     if (busy || !state) return;
     setBusy(true);
     try {
-      const data = await readResponse(await fetch("/api/export"));
+      const data = await readResponse(await backendFetch("/api/export"));
       const blob = new Blob([JSON.stringify(data,null,2) + "\n"],{type:"application/json"});
       const url = URL.createObjectURL(blob), link = document.createElement("a");
       link.href = url; link.download = `go4d-${state.game.size}x${state.game.size}-move${state.game.move_number}.json`; document.body.append(link); link.click(); link.remove();
@@ -294,7 +295,7 @@
     if ((state.game.move_number > 0 || state.game.finished) && !(await confirmDialog("读取保存的棋局？",`将用 ${file.name} 替换当前棋局。未保存的落子将丢失。`,"读取棋局"))) return;
     setBusy(true); notice = ""; noticeError = false; renderStatus();
     try {
-      const result = await readResponse(await fetch("/api/import",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({revision:state.revision,data})}));
+      const result = await readResponse(await backendFetch("/api/import",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({revision:state.revision,data})}));
       inspection = null; hintedPoint = null; applyState(result); setNotice("棋局已恢复，可以继续对弈。");
     } catch (error) { setNotice(error.message,true); }
     finally { setBusy(false); renderStatus(); }
@@ -320,8 +321,15 @@
     inspection = focused ? focused.split(",").map(Number) : null; updateInspection();
   });
   async function initialize() {
-    setBusy(true);
-    try { applyState(await readResponse(await fetch("/api/state",{cache:"no-store"}))); }
+    if (window.GoWebBackend) {
+      $("web-session-note").hidden = false;
+      $("turn-subtitle").textContent = "浏览器内运行";
+      window.addEventListener("beforeunload", event => {
+        if (state && state.revision > 0) { event.preventDefault(); event.returnValue = ""; }
+      });
+    }
+    setBusy(true); renderStatus();
+    try { applyState(await readResponse(await backendFetch("/api/state",{cache:"no-store"}))); }
     catch (error) { setNotice(error.message,true); }
     finally { setBusy(false); renderStatus(); }
   }

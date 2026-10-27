@@ -6,8 +6,9 @@
   <meta name="theme-color" content="#172d35">
   <meta name="description" content="在四维格点上落子、围气、提子。一个 Python 标准库驱动的本地围棋小游戏。">
   <title>四维围棋 · GO / 4D</title>
-  <link rel="stylesheet" href="/style.css">
-  <script defer src="/app.js"></script>
+  <link rel="stylesheet" href="style.css">
+  <script defer src="web-bridge.js"></script>
+  <script defer src="app.js"></script>
 </head>
 <body>
   <div class="app-shell">
@@ -33,7 +34,7 @@
         <section class="game-card turn-card">
           <span class="eyebrow">YOUR NEXT MOVE</span>
           <div class="turn-display"><span class="turn-stone black" id="turn-stone" aria-hidden="true"></span><div><h2 id="turn-title">读取棋局…</h2><p id="turn-subtitle">连接本地 Python 服务</p></div><span class="move-number" id="move-number">00</span></div>
-          <div class="status-banner" id="status-banner" role="status" aria-live="polite">正在连接棋盘…</div>
+          <div class="status-banner" id="status-banner" role="status" aria-live="polite">正在连接棋盘…</div><p id="web-session-note" class="web-session-note" hidden>网页棋局仅保存在当前页面；刷新或关闭前请先点“保存棋局”。</p>
           <div class="player-row"><span><i class="small-stone black"></i>黑棋</span><span id="black-player">玩家一</span><strong id="black-captures">提 0</strong></div>
           <div class="player-row"><span><i class="small-stone white"></i>白棋</span><span id="white-player">玩家二</span><strong id="white-captures">提 0</strong></div>
           <div class="action-grid"><button class="button primary" id="pass-button">停一手 <span>PASS</span></button><button class="button" id="undo-button">悔棋 <span>UNDO</span></button><button class="button" id="hint-button">找一手 <span>HINT</span></button><button class="button subtle" id="resign-button">认输 <span>RESIGN</span></button></div>
