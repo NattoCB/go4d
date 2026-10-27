@@ -8,7 +8,7 @@ def main():
     root = Path(__file__).resolve().parent
     output = root / "artifacts" / "go4d.zip"
     output.parent.mkdir(exist_ok=True)
-    files = [root / name for name in ("README.md", "app.py", "engine.py", "ai.py", "build.py", "开始游戏.command", ".gitignore")]
+    files = [root / name for name in ("README.md", "LICENSE", "app.py", "engine.py", "ai.py", "build.py", "开始游戏.command", ".gitignore")]
     for folder in ("static", "tests", "docs"):
         files.extend(path for path in (root / folder).rglob("*")
                      if path.is_file() and "__pycache__" not in path.parts)
