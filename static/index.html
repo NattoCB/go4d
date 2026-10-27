@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#172d35">
+  <meta name="description" content="在四维格点上落子、围气、提子。一个 Python 标准库驱动的本地围棋小游戏。">
+  <title>四维围棋 · GO / 4D</title>
+  <link rel="stylesheet" href="/style.css">
+  <script defer src="/app.js"></script>
+</head>
+<body>
+  <div class="app-shell">
+    <header class="masthead">
+      <div class="brand"><span class="brand-symbol" aria-hidden="true">十</span><div><span class="eyebrow">ANOTHER DIMENSION, SAME GO</span><h1>四维围棋 <span class="dimension-badge">4D</span></h1></div></div>
+      <div class="header-note"><span class="live-dot" aria-hidden="true"></span> 本地棋局 <span class="header-divider">/</span> <span id="total-points">81 个格点</span></div>
+    </header>
+
+    <main class="workspace">
+      <section class="board-workspace" aria-label="四维棋盘">
+        <div class="board-intro"><div><span class="eyebrow">THE BOARD</span><h2>把四维，展开来看。</h2><p>每一小盘是一张切片；所有切片连接成同一个棋盘。</p></div><div class="board-size-mark" id="board-size-mark">3<span>⁴</span></div></div>
+        <div class="board-toolbar">
+          <div class="axis-controls"><span class="toolbar-label">切片内轴</span><label class="sr-only" for="inner-a">横向轴</label><select id="inner-a" aria-label="切片横向轴"><option value="0">x →</option><option value="1">y →</option><option value="2">z →</option><option value="3">w →</option></select><span class="axis-times">×</span><label class="sr-only" for="inner-b">纵向轴</label><select id="inner-b" aria-label="切片纵向轴"><option value="0">x ↓</option><option value="1" selected>y ↓</option><option value="2">z ↓</option><option value="3">w ↓</option></select></div>
+          <label class="territory-control"><input type="checkbox" id="territory-toggle"><span class="switch" aria-hidden="true"></span>显示地盘</label>
+        </div>
+        <div class="dimension-guide" id="dimension-guide">切片内 x / y · 列 z → · 行 w ↓</div>
+        <div class="board-scroll" id="board-scroll"><div class="slice-matrix" id="boards" aria-label="棋盘切片矩阵"></div></div>
+        <div class="board-legend"><span><i class="legend-ring neighbor"></i>直接邻点</span><span><i class="legend-ring group"></i>同一棋块</span><span><i class="legend-square"></i>整块的气</span><span><i class="legend-last"></i>上一手</span></div>
+        <div class="inspection" id="inspection"><div class="inspection-icon" aria-hidden="true">⌖</div><div><strong id="inspect-title">探索一个交叉点</strong><p id="inspect-description">悬停或用 Tab 聚焦，查看四维邻点与整块的气。坐标从 0 开始。</p></div></div>
+      </section>
+
+      <aside class="game-sidebar" aria-label="棋局控制与信息">
+        <section class="game-card turn-card">
+          <span class="eyebrow">YOUR NEXT MOVE</span>
+          <div class="turn-display"><span class="turn-stone black" id="turn-stone" aria-hidden="true"></span><div><h2 id="turn-title">读取棋局…</h2><p id="turn-subtitle">连接本地 Python 服务</p></div><span class="move-number" id="move-number">00</span></div>
+          <div class="status-banner" id="status-banner" role="status" aria-live="polite">正在连接棋盘…</div>
+          <div class="player-row"><span><i class="small-stone black"></i>黑棋</span><span id="black-player">玩家一</span><strong id="black-captures">提 0</strong></div>
+          <div class="player-row"><span><i class="small-stone white"></i>白棋</span><span id="white-player">玩家二</span><strong id="white-captures">提 0</strong></div>
+          <div class="action-grid"><button class="button primary" id="pass-button">停一手 <span>PASS</span></button><button class="button" id="undo-button">悔棋 <span>UNDO</span></button><button class="button" id="hint-button">找一手 <span>HINT</span></button><button class="button subtle" id="resign-button">认输 <span>RESIGN</span></button></div>
+          <button class="button primary resume-button" id="resume-button" hidden>继续对弈</button>
+        </section>
+
+        <section class="game-card score-card"><div class="section-heading"><h3 id="score-title">预估面积</h3><span id="komi-label">白贴 0.5</span></div><div class="score-display"><div><span class="score-label">黑 BLACK</span><strong id="black-score">0</strong></div><span class="score-separator">:</span><div><span class="score-label">白 WHITE</span><strong id="white-score">0.5</strong></div></div><div class="score-breakdown" id="score-breakdown">活子 + 四维空域 + 贴目</div><p class="score-note" id="score-note">中盘空域变化很大，估算不代表胜负；终局需共同确认死活。</p></section>
+
+        <section class="game-card settings-card"><div class="section-heading"><h3>开一局新棋</h3><span>SETUP</span></div><div class="setup-fields"><label>每轴格点<select id="size-select"><option value="3">3 · 共 81 点</option><option value="4">4 · 共 256 点</option><option value="5">5 · 共 625 点</option></select></label><label>对弈模式<select id="mode-select"><option value="local">双人对弈</option><option value="ai">对电脑 · 你执黑</option></select></label><label class="komi-field">白棋贴目<input id="komi-input" type="number" step="0.5" value="0.5" min="-50" max="50"></label><button class="button new-button" id="new-button">开始新局 <span>↗</span></button></div><div class="file-actions"><button id="save-button">↓ 保存棋局</button><button id="load-button">↑ 读取棋局</button><input type="file" id="load-file" accept=".json,application/json" hidden></div></section>
+
+        <section class="game-card history-card"><div class="section-heading"><h3>落子记录</h3><span id="history-count">0 手</span></div><ol id="history-list" class="history-list"><li class="history-empty">棋局尚未开始</li></ol></section>
+      </aside>
+    </main>
+
+    <section class="learning-section" aria-label="规则说明"><div class="learning-heading"><div><span class="eyebrow">A NEW WAY TO SURROUND</span><h2>围的仍然是气，空间多了两维。</h2></div><button class="button demo-button" id="demo-button">试一次跨层提子 <span>↗</span></button></div><div class="rule-grid"><article><span class="rule-number">01 / 相邻</span><h3>四条轴，最多八个邻点</h3><p>只沿某一轴前后走一步；对角线不相邻，边界不环绕。切片内四面全被围，仍可能在 z、w 方向有四气；四维角点也有四邻点。</p></article><article><span class="rule-number">02 / 包围</span><h3>同色连通，整块数气</h3><p>正交相邻的同色子连接成一块。落子后先提走没有气的敌方棋块，再检查自己：禁自杀，禁重现曾有的棋盘。</p></article><article><span class="rule-number">03 / 终局</span><h3>共同确认，按面积计分</h3><p>连续两次停着后，双方协商死活，点棋块标记死子。移除死子后，活子 + 仅接触本方的空域为面积；提子不另加分。电脑不裁定死活。</p></article></div></section>
+    <footer class="footer"><span>GO / 4D <span class="footer-dot">·</span> PYTHON STANDARD LIBRARY</span><span>启发式电脑执白 · 无需账号 · 棋局留在本机</span></footer>
+  </div>
+
+  <dialog id="confirm-dialog" class="confirm-dialog"><form method="dialog"><span class="eyebrow">CONFIRM</span><h2 id="dialog-title">开始新局？</h2><p id="dialog-description">当前棋局将被替换。可先保存棋局，以便稍后继续。</p><div class="dialog-actions"><button class="button" value="cancel">取消</button><button class="button primary" id="dialog-confirm" value="confirm">确认</button></div></form></dialog>
+</body>
+</html>
